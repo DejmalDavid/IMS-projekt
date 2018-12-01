@@ -1,5 +1,5 @@
 all:
-	g++ -Wextra  -pedantic *.cc -o  model -lsimlib -lm
+	g++ -Wextra  -pedantic *.cpp -o  model -lsimlib -lm
 run:
 	./model
 
