@@ -41,7 +41,7 @@
 #define DOBA_PRACE_LIS 460			//pracovni doba lisu=smena-10m start smeny()-doba jednoho mleti-20m cisteni na konci smeny
 #define PRIKON_DOPRAVNIK 0.5			//prikon dopravniku na prepravu 10kg semene
 #define PRIKON_LIS CAS_LISOVANI*0.18		//prikon lisu na 10kg semene;lis A - 0.18 ;lib B 0.09
-#define JIMKA_OLEJ 100				//kapacita jimky na olej;lis A 100l ; lis B 50l
+#define JIMKA_OLEJ 1000				//kapacita jimky na olej
 #define JIMKA_ODPAD 1000			//kapacita jimky na odpad;lis A 1000kg ; lis B 800kg
 
 //Konec moznych uprav
@@ -75,6 +75,7 @@ int auto_dnes=0;		//pocet prijetych nakladnich aut dnes
 int auto_celkem=0;		//pocet aut celkem
 int obsluha=0;			//pocet volani obsluhy pro vyprazneni jimek
 int alert_silo=0;		//pocet akutne volanych aut s repkou
+int cisterna=0;			//pocet cisteren co vyvezly jimku oleje
 Entity *Ventil;			//pomocny pointer
 
 char* sim_cas(double t,char* cas)	//pomocna funkce pro prevod Time na datum a cas
@@ -217,18 +218,18 @@ class Lisovani : public Process {
 			Wait(CAS_LISOVANI);	//Trva lisovani
 			olej=POMER_OLEJ*10;
 			odpad=(1-POMER_OLEJ)*10;
+			olej_dnes=olej_dnes+olej;
 			jimka_olej=jimka_olej+olej;
 			jimka_odpad=jimka_odpad+odpad;
-			if(jimka_olej>JIMKA_OLEJ*0.8)	//volani obsluhy o vyliti
+			if(jimka_olej>JIMKA_OLEJ*0.9)	//volani obsluhy o vyliti
 			{
-				//printf("Vylij me\n");	//TODO counter statistik
-				obsluha++;
-				olej_dnes=olej_dnes+jimka_olej;
+				//printf("Vylij me\n");	// counter statistik
+				cisterna++;
 				jimka_olej=0;
 			}
 			if(jimka_odpad>JIMKA_ODPAD*0.8)	//volani obsluhy o vysypani
 			{
-				//printf("Vysyp me\n");	//TODO counter statistik
+				//printf("Vysyp me\n");	// counter statistik
 				obsluha++;
 				odpad_dnes=odpad_dnes+jimka_odpad;
 				jimka_odpad=0;
@@ -246,7 +247,6 @@ class Day_Counter : public Event {
 	int den_count=0;
 	void Behavior() {
 		sim_cas(Time,vypis_cas);
-		olej_dnes=olej_dnes+jimka_olej;
 		odpad_dnes=odpad_dnes+jimka_odpad;
 		if(den_count!=0)
 		{
@@ -262,7 +262,6 @@ class Day_Counter : public Event {
 		auto_dnes=0;
 		prikon_dopravnik_dnes=0;
 		prikon_lis_dnes=0;
-		jimka_olej=0;
 		jimka_odpad=0;
 		olej_dnes=0;
 		odpad_dnes=0;
@@ -304,7 +303,7 @@ int main() {
  	(new Day_Counter)->Activate(Time);
 	Run();   
 	Print("Celkova statistika\n");
-	Print("Olej:%.3f\tOdpad:%.3f\tEnergie:%.3f\tSilo:%.3f\tPocet Aut:%d\tPocet akutne volanych aut:%d\n",olej_celkem,odpad_celkem/1000,prikon_dopravnik_celkem+prikon_lis_celkem,Silo.Length()/100.0,auto_celkem,alert_silo);
+	Print("Olej:%.3f\tOdpad:%.3f\tEnergie:%.3f\tSilo:%.3f\tPocet Aut:%d\tPocet cisteren:%d\tPocet akutne volanych aut:%d\n",olej_celkem,odpad_celkem/1000,prikon_dopravnik_celkem+prikon_lis_celkem,Silo.Length()/100.0,auto_celkem,cisterna,alert_silo);
 	Silo.Output();
 	Dopravnik.Output();
 	Zasobnik.Output();
