@@ -26,7 +26,7 @@
 //Makra pro parametrizaci programu- ZDE PROVADET UPRAVY
 #define MAX_SILO 80000				//kapacita sila v 10kg
 #define INIT_LIS Uniform(3000.0,8000.0)		//pocatecni mnozstvi repky v lisu z minule urody
-#define DELKA_SIMULACE MESIC*12			//delka simulace v minutach/casove makro
+#define DELKA_SIMULACE DEN			//delka simulace v minutach/casove makro
 #define MNOZSTVI_REPKY Uniform(800.0,1200.0)	//obsah nakladniho vozu
 #define DELKA_SKLIZNE MESIC*2			//cas po ktery prijizdeji nakladni auta v minutach
 #define PRIJEZD_AUTA Exponential(DEN)		//za jak dlouho prijede dalsi auto
@@ -34,15 +34,15 @@
 #define CAS_DOPRAVNIK 10			//cas straveny na dopravniku
 #define ALERT_SILO 2000				//mnozstvi repky kdy je nutne objednat extra kamion
 #define VENTIL_CASOVAC 1			//cas po kterem muze ventil nalozit znova na dopravnik
-#define CAS_LISOVANI Uniform(3.25,3.8)		//jak rychle pomele lis 10kg semene ; lis A - 3,25 az 3.8; lib B 4,6 az 6,0
-#define MAX_LISOVANI 3.8			//max delka lisovani
-#define POMER_OLEJ Uniform(0.10,0.17)		//vynos oleje z 10kg
-#define MAX_ZASOBNIK 5				//maximalni mnozstvi zasobniku pred lisem; lis A - 6; lis B - 4
-#define DOBA_PRACE_LIS 460			//pracovni doba lisu=smena-10m start smeny()-doba jednoho mleti-20m cisteni na konci smeny
+#define CAS_LISOVANI Uniform(4.6,6)		//jak rychle pomele lis 10kg semene ; lis A - 3,25 az 3.8; lib B 4,6 az 6,0
+#define MAX_LISOVANI 6				//max delka lisovani; max hodnota z CAS_LISOVANI
+#define POMER_OLEJ Uniform(0.10,0.15)		//vynos oleje z 10kg
+#define MAX_ZASOBNIK 4				//maximalni mnozstvi zasobniku pred lisem; lis A - 6; lis B - 4
+#define DOBA_PRACE_LIS 580			//pracovni doba lisu=smena-10m start smeny()-doba jednoho mleti-20m cisteni na konci smeny
 #define PRIKON_DOPRAVNIK 0.5			//prikon dopravniku na prepravu 10kg semene
-#define PRIKON_LIS CAS_LISOVANI*0.18		//prikon lisu na 10kg semene;lis A - 0.18 ;lib B 0.09
-#define JIMKA_OLEJ 1000				//kapacita jimky na olej
-#define JIMKA_ODPAD 1000			//kapacita jimky na odpad;lis A 1000kg ; lis B 800kg
+#define PRIKON_LIS CAS_LISOVANI*0.09		//prikon lisu na 10kg semene;lis A - 0.18 ;lib B 0.09
+#define JIMKA_OLEJ 4000				//kapacita jimky na olej
+#define JIMKA_ODPAD 800				//kapacita jimky na odpad;lis A 1000kg ; lis B 800kg
 
 //Konec moznych uprav
 
@@ -171,7 +171,7 @@ class Ventil_silo : public Process {
 				perioda_flag=false;
 				(new AutoGenerator)->Activate();	//prijede extra kamion
 				alert_silo++;
-				printf("Kriticke silo!");	
+				//printf("Kriticke silo!");	
 			}
 			if(Zasobnik.Length()<MAX_ZASOBNIK)
 			{	
@@ -221,7 +221,7 @@ class Lisovani : public Process {
 			olej_dnes=olej_dnes+olej;
 			jimka_olej=jimka_olej+olej;
 			jimka_odpad=jimka_odpad+odpad;
-			if(jimka_olej>JIMKA_OLEJ*0.9)	//volani obsluhy o vyliti
+			if(jimka_olej>JIMKA_OLEJ*0.9)	//volani obsluhy o vyliti jimka je skoro plna
 			{
 				//printf("Vylij me\n");	// counter statistik
 				cisterna++;
@@ -299,7 +299,7 @@ int main() {
 		(new Repka)->Activate(); 
 	}
 	Ventil=new Ventil_silo;
-	(new AutoGenerator)->Activate(Time+Exponential(720.0));
+	(new AutoGenerator)->Activate(Time+PRIJEZD_AUTA);
  	(new Day_Counter)->Activate(Time);
 	Run();   
 	Print("Celkova statistika\n");
